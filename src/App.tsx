@@ -166,6 +166,12 @@ export default function App() {
       return;
     }
 
+    if (phone === '01322775927') {
+      setCurrentStatus('Error: Restricted Number');
+      addLog('This number is protected and cannot be targeted.', 'error');
+      return;
+    }
+
     // Reset and Start immediately
     stopRequestRef.current = false;
     setIsAttacking(true);
@@ -275,7 +281,7 @@ export default function App() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                    placeholder="1XXXXXXXXX"
+                    placeholder="01XXXXXXXXX"
                     disabled={isAttacking}
                     className="w-full bg-black/40 border border-brand/30 rounded-full py-4 md:py-4 pl-14 md:pl-16 pr-4 md:pr-6 font-mono text-lg md:text-lg focus:outline-none focus:border-brand focus:ring-4 focus:ring-brand/10 transition-all disabled:opacity-50"
                   />
