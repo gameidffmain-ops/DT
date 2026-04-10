@@ -144,6 +144,7 @@ export default function App() {
   const [stats, setStats] = useState({ total: 0, success: 0, failed: 0 });
   const [logs, setLogs] = useState<{ id: number; msg: string; type: 'success' | 'error' | 'info' }[]>([]);
   const [currentStatus, setCurrentStatus] = useState('System Ready');
+  const [showRestrictedModal, setShowRestrictedModal] = useState(false);
   
   const stopRequestRef = useRef(false);
   const logIdRef = useRef(0);
@@ -169,6 +170,7 @@ export default function App() {
     if (phone === '01322775927') {
       setCurrentStatus('Error: Restricted Number');
       addLog('This number is protected and cannot be targeted.', 'error');
+      setShowRestrictedModal(true);
       return;
     }
 
@@ -471,6 +473,57 @@ export default function App() {
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.52-1.4.51-.46-.01-1.35-.26-2.01-.48-.81-.27-1.45-.42-1.39-.89.03-.25.38-.51 1.05-.78 4.12-1.79 6.87-2.97 8.24-3.55 3.93-1.64 4.74-1.92 5.28-1.93.12 0 .38.03.55.17.14.11.18.26.2.46.01.07.02.24 0 .41z"/>
         </svg>
       </motion.a>
+
+      {/* Restricted Number Modal */}
+      <AnimatePresence>
+        {showRestrictedModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowRestrictedModal(false)}
+              className="absolute inset-0 bg-black/90 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-sm glass rounded-[2.5rem] p-8 text-center space-y-6 border-red-500/50 shadow-[0_0_50px_rgba(239,68,68,0.3)]"
+            >
+              <div className="relative inline-block">
+                <div className="absolute -inset-4 bg-red-500/20 blur-2xl rounded-full animate-pulse" />
+                <img 
+                  src="https://i.ibb.co.com/GQf6q90q/image.jpg" 
+                  alt="Warning" 
+                  className="relative w-32 h-32 md:w-40 md:h-40 object-cover rounded-3xl border-2 border-red-500/50 shadow-2xl"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/400x400/1a0000/ff0000?text=RESTRICTED';
+                  }}
+                />
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="text-2xl md:text-3xl font-black text-red-500 uppercase tracking-tighter leading-tight">
+                  সর চুদিরভাই, <br/>
+                  যেই থালে খাস সেই থালেই ফোটা করিস?
+                </h3>
+                <p className="text-white/40 text-xs md:text-sm font-bold uppercase tracking-widest">
+                  ACCESS DENIED • PROTECTED TARGET
+                </p>
+              </div>
+
+              <button 
+                onClick={() => setShowRestrictedModal(false)}
+                className="w-full py-4 bg-red-500 hover:bg-red-600 text-white font-black rounded-full transition-all shadow-lg shadow-red-500/20 uppercase tracking-widest text-sm"
+              >
+                I Understand
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
